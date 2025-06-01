@@ -24,6 +24,7 @@
 
 создал базу pg_test_perf для тестирования
 
+
 ![image](https://github.com/user-attachments/assets/601417dd-f301-4296-a879-4b1bef8cf09a)
 
 
