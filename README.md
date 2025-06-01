@@ -65,6 +65,8 @@ ALTER SYSTEM SET  effective_io_concurrency = 5                        ;
 ALTER SYSTEM SET  random_page_cost = 4                                ;
 ALTER SYSTEM SET  shared_preload_libraries = 'pg_stat_statements'     ;
 ```
+> sudo -i -u postgres pg_ctlcluster 17 main stop && sync && echo 3 > /proc/sys/vm/drop_caches  && sudo -i -u postgres  pg_ctlcluster 17 main start
+
 
 Проверка значений параметров после 
 ```
@@ -84,6 +86,8 @@ postgres@otuspgperf01:~$ psql -c "show all"|egrep "shared_buffers|work_mem|maint
 ```
 
 ## (4) Проверить насколько выросла производительность ##
+
+>sudo -i -u postgres pgbench -i -s 150 pg_test_perf
 
 
 ## (5) Настроить кластер на оптимальную производительность не обращая внимания на стабильность БД ##
