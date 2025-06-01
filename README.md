@@ -29,7 +29,7 @@
 
 
 ## (2) Протестировать pg_bench ##
-выполнилить тестовый ран против базы pg_test_perf, перед каждым раном будем перезапускать экземпляр и чистить кэш на OS
+выполнилить базовый ран(от него будем отталкиваться) против базы pg_test_perf, перед каждым раном будем перезапускать экземпляр и чистить кэш на OS
 > sudo -i -u postgres pg_ctlcluster 17 main stop && sync && echo 3 > /proc/sys/vm/drop_caches  && sudo -i -u postgres  pg_ctlcluster 17 main start
 > sudo -i -u postgres pgbench -i -s 150 pg_test_perf
 ![image](https://github.com/user-attachments/assets/f51b27e2-1099-4c80-b96d-6bb1ba119e4f)
