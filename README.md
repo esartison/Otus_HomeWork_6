@@ -3,6 +3,7 @@
 
 ## (1) Развернуть Постгрес на ВМ ##
 создал самую простую VM в YC 
+
 ![image](https://github.com/user-attachments/assets/9b598d4f-1691-4c15-a87b-f4cf33232028)
 
 установил Postgres с настройками по умолчанию
