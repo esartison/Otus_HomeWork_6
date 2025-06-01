@@ -36,7 +36,7 @@
 
 ## (3) Выставить оптимальные настройки ##
 
-Взял конфигуратор https://pgconfigurator.cybertec-postgresql.com/ и получил рекомендации по следующим параметрам
+Взял конфигуратор https://pgconfigurator.cybertec-postgresql.com/ и получил рекомендации по следующим параметрам, пробежался и рекомендации выглядят оправданными
 ```
 postgres@otuspgperf01:~$ psql -c "show all"|egrep "shared_buffers|work_mem|maintenance_work_mem|max_connections|effective_cache_size|effective_io_concurrency|random_page_cost|shared_preload_libraries"
  autovacuum_work_mem                         | -1                                      | Sets the maximum memory to be used by each autovacuum worker process.
@@ -86,8 +86,42 @@ postgres@otuspgperf01:~$ psql -c "show all"|egrep "shared_buffers|work_mem|maint
 ```
 
 ## (4) Проверить насколько выросла производительность ##
-
 >sudo -i -u postgres pgbench -i -s 150 pg_test_perf
+![image](https://github.com/user-attachments/assets/554af739-3c1f-47a5-87ac-291228ee5d6e)
 
+Изменение параметров помогло, время сократилось со 174 секунд до 152 секунд, перед каждой итерацией перезапускали Postgres и чистили кэш на OS.
 
 ## (5) Настроить кластер на оптимальную производительность не обращая внимания на стабильность БД ##
+
+Решил попробовать поменять значения для 3х параметров: wal_level, synchronous_commit, fsync
+```
+postgres@otuspgperf01:~$ psql -c "show all"|egrep "wal_level|synchronous_commit|fsync"
+ fsync                                       | on                                      | Forces synchronization of updates to disk.
+ recovery_init_sync_method                   | fsync                                   | Sets the method for synchronizing the data directory before crash recovery.
+ synchronous_commit                          | on                                      | Sets the current transaction's synchronization level.
+ wal_level                                   | replica                                 | Sets the level of information written to the WAL.
+ wal_skip_threshold                          | 2MB                                     | Minimum size of new file to fsync instead of writing WAL.
+``` 
+
+Смена параметров и перезапуск экземпляра
+``` 
+ALTER SYSTEM SET  synchronous_commit = 'off'                           ;
+ALTER SYSTEM SET  wal_level = 'minimal'                                ;
+ALTER SYSTEM SET  fsync = 'off'                                        ;
+ALTER SYSTEM SET  max_wal_senders = 0                                  ;
+```
+>sudo -i -u postgres pg_ctlcluster 17 main stop && sync && echo 3 > /proc/sys/vm/drop_caches  && sudo -i -u postgres  pg_ctlcluster 17 main start
+
+Проверка параметров после изменения
+```
+postgres@otuspgperf01:~$ psql -c "show all"|egrep "wal_level|synchronous_commit|fsync"
+ fsync                                       | off                                     | Forces synchronization of updates to disk.
+ recovery_init_sync_method                   | fsync                                   | Sets the method for synchronizing the data directory before crash recovery.
+ synchronous_commit                          | off                                     | Sets the current transaction's synchronization level.
+ wal_level                                   | minimal                                 | Sets the level of information written to the WAL.
+ wal_skip_threshold                          | 2MB                                     | Minimum size of new file to fsync instead of writing WAL.
+```
+
+Запуск pgbench
+![image](https://github.com/user-attachments/assets/549f8cb4-59bd-4623-876a-ed1cdce79967)
+Смена параметров помогла, время выполнения сократилось со 152 секунд до 100 секунд. 
